@@ -53,12 +53,17 @@ def main():
 
     print("50%:", np.quantile(iris_np[:, :-1], 0.5, axis=0))
 
-    print(iris_df.describe())
-
     print_heading("Plots")
-    fig = px.scatter(iris_df, x="Sepal_Width", y="Sepal_Length", color="Species")
+    fig = px.scatter(
+        iris_df,
+        x="Sepal_Width",
+        y="Sepal_Length",
+        color="Species",
+        title="Scatter plot between Sepal_Width and Sepal_Length",
+    )
     fig.show()
 
+    # Violin plot provides with density estimate on the y-axis
     fig = px.violin(
         iris_df,
         y="Petal_Length",
@@ -67,12 +72,22 @@ def main():
         box=True,
         points="all",
         hover_data=iris_df.columns,
+        title=" Violin plot using Petal_Length as feature",
     )
     fig.show()
 
-    fig = px.box(iris_df, y="Petal_Length", x="Species", color="Species")
+    # Boxplot using Petal_Length as feature to show what percentile
+    # ranges in what region
+    fig = px.box(
+        iris_df,
+        y="Petal_Length",
+        x="Species",
+        color="Species",
+        title=" Boxplot using Petal_Length as feature",
+    )
     fig.show()
 
+    # Scatter Plot of different features
     fig = px.scatter_matrix(
         iris_df,
         dimensions=["Sepal_Width", "Sepal_Length", "Petal_Width", "Petal_Length"],
@@ -80,6 +95,7 @@ def main():
     )
     fig.show()
 
+    # Pie chart to show Population of each Species in the dataset
     fig = px.pie(
         iris_df,
         values=iris_df["Species"].value_counts(),
