@@ -52,7 +52,7 @@ DROP VIEW IF EXISTS vw_allbatterdata;
 CREATE VIEW vw_allbatterdata as
 (SELECT hit,atbat,batter,bc.game_id,Date(local_date) as l_dt from batter_counts bc 
 JOIN game g ON g.game_id = bc.game_id 
-ORDER BY game_id ,local_date )
+ORDER BY game_id ,local_date );
 
 DROP TABLE IF EXISTS rolling_average;
 
