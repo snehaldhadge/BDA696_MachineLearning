@@ -20,7 +20,7 @@ USE baseball;
 DROP TABLE IF EXISTS historic_average;
 
 CREATE TABLE historic_average AS
-SELECT SUM(IFNULL(hit,0))/NULLIF(SUM(IFNULL(atbat,0)),0) as batting_average,batter
+SELECT IFNULL((SUM(hit))/NULLIF(SUM(atbat),0),0) as batting_average,batter
 FROM batter_counts 
 GROUP BY batter 
 ORDER BY batting_average desc;
@@ -34,7 +34,7 @@ SELECT * FROM historic_average;
 DROP TABLE IF EXISTS annual_average;
 
 CREATE TABLE annual_average AS
-SELECT batter,year(g.local_date) as game_year,sum(IFNULL(Hit,0))/NULLIF(sum(IFNULL(atBat,0)),0) as average 
+SELECT batter,year(g.local_date) as game_year,IFNULL(sum(Hit)/NULLIF(sum(atBat),0),0) as batting_average
 FROM batter_counts bc 
 JOIN game g on g.game_id  = bc.game_id 
 GROUP BY  batter,game_year;
