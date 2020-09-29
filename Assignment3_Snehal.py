@@ -4,6 +4,8 @@ import sys
 from pyspark import StorageLevel
 from pyspark.sql import SparkSession
 
+from BattingAvgCalc import BattingAvgCalc
+
 
 # Printing heading before each section
 def print_heading(title):
@@ -11,12 +13,6 @@ def print_heading(title):
     print(title)
     print("*" * 80)
     return
-
-
-# Function to Calculate batting Average i.e Hit/Atbat
-def calculate_rollingavg(input_df):
-    o_df = input_df.withColumn("Rolling_Avg", input_df.Sum_H / input_df.Sum_A)
-    return o_df
 
 
 def main():
@@ -36,7 +32,6 @@ def main():
     )
     b_counts.createOrReplaceTempView("batter_counts_all")
     b_counts.persist(StorageLevel.DISK_ONLY)
-    # b_counts.show()
     results = spark.sql(
         """SELECT SUM(bc_i.Hit) as Sum_H,SUM(bc_i.atbat) as Sum_A,bc_o.batter,bc_o.game_id \
                 FROM batter_counts_all bc_o JOIN \
@@ -45,11 +40,16 @@ def main():
                 GROUP BY bc_o.batter, bc_o.game_id \
                 ORDER BY bc_o.game_id """
     )
-    rolling_avg = results.transform(calculate_rollingavg)
+    batting_avg_cal = BattingAvgCalc(
+        inputCols=["Sum_H", "Sum_A"], outputCol="rolling_average"
+    )
+    rolling_avg = batting_avg_cal.transform(results)
     print_heading("Rolling Average Calculation results")
     rolling_avg.show()
     print_heading("100 day Rolling Average for each batter for given game_id")
-    rolling_avg.filter(rolling_avg.game_id == 5).show()
+    rolling_avg.filter(rolling_avg.game_id == 5).select(
+        ["batter", "game_id", "rolling_average"]
+    ).show()
 
 
 if __name__ == "__main__":
