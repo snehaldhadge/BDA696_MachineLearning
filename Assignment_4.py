@@ -4,10 +4,13 @@ import sys
 
 import numpy as np
 import pandas as pd
+import pandas.core.algorithms as algos
+import scipy.stats.stats as stats
 import statsmodels.api as sm
 from plotly import express as px
 from plotly import figure_factory as ff
 from plotly import graph_objects as go
+from plotly.subplots import make_subplots
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.metrics import confusion_matrix
 
@@ -108,35 +111,90 @@ def generate_scatter_plot(df, col, filename):
 
 
 max_bin = 10
+force_bin = 3
+
+
+def get_dif_mean_response_plots(df, pop_prop_1):
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    fig.add_trace(
+        go.Bar(x=df["Mean"], y=df["COUNT"], name="Population"),
+        secondary_y=False,
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=df["Mean"], y=df["BinMean"], line=dict(color="red"), name="BinMean"
+        ),
+        secondary_y=True,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=df["Mean"],
+            y=df["Pop_mean"],
+            line=dict(color="green"),
+            name="PopulationMean",
+        ),
+        secondary_y=True,
+    )
+    fig.update_layout(height=600, width=800, title_text="Diff in Mean with Response")
+    filename = "~/plots/Diff_in_mean_with_response.html"
+    fig.write_html(
+        file=filename,
+        include_plotlyjs="cdn",
+    )
+
+
+def calculate_mean_uw_w(d2, pop_prop_1, df):
+    d3 = pd.DataFrame({}, index=[])
+    d3["Mean"] = d2.mean().X
+    d3["LowerBin"] = d2.min().X
+    d3["UpperBin"] = d2.max().X
+    d3["COUNT"] = d2.count().Y
+    d3["Pop_mean"] = pop_prop_1
+    pop_prop = d3["COUNT"] / len(df)
+    d3["BinMean"] = d2.mean().Y
+    d3["Mean_sq_diff"] = (d3.BinMean - pop_prop_1) ** 2
+    d3["Mean_sq_diffW"] = d3.Mean_sq_diff * pop_prop
+    get_dif_mean_response_plots(d3, pop_prop_1)
+    return d3["Mean_sq_diff"].sum(), d3["Mean_sq_diffW"].sum()
 
 
 def calculate_mean_of_response(df, col, pop_prop_1, n=max_bin):
     print(col)
-    d1 = pd.DataFrame({"X": df[col], "Y": df["target"], "Bucket": pd.qcut(df[col], 10)})
-    d2 = d1.groupby("Bucket", as_index=True)
-    d3 = pd.DataFrame({}, index=[])
-    d3["LowerBin"] = d2.min().X
-    d3["UpperBin"] = d2.max().X
-    d3["COUNT"] = d2.count().Y
-    pop_prop = d3["COUNT"] / len(df)
-    d3["BinMean"] = d2.sum().Y / d3.COUNT
-    d3["Mean_sq_diff"] = (d3.BinMean - pop_prop_1) ** 2
-    d3["Mean_sq_diffW"] = d3.Mean_sq_diff * pop_prop
-    return d3["Mean_sq_diff"].sum(), d3["Mean_sq_diffW"].sum()
+    r = 0
+    while np.abs(r) < 1:
+        try:
+            d1 = pd.DataFrame(
+                {"X": df[col], "Y": df["target"], "Bucket": pd.qcut(df[col], n)}
+            )
+            d2 = d1.groupby("Bucket", as_index=True)
+            r, p = stats.spearmanr(d2.mean().X, d2.mean().Y)
+            n = n - 1
+        except Exception:
+            n = n - 1
+
+    if len(d2) == 1:
+        n = force_bin
+        bins = algos.quantile(df[col], np.linspace(0, 1, n))
+        if len(np.unique(bins)) == 2:
+            bins = np.insert(bins, 0, 1)
+            bins[1] = bins[1] - (bins[1] / 2)
+        d1 = pd.DataFrame(
+            {
+                "X": df[col],
+                "Y": df["target"],
+                "Bucket": pd.cut(df[col], np.unique(bins), include_lowest=True),
+            }
+        )
+        d2 = d1.groupby("Bucket", as_index=True)
+    return calculate_mean_uw_w(d2, pop_prop_1, df)
 
 
 def calculate_mean_of_response_cat(df, col, pop_prop_1):
     # bins = len(np.unique(df[col].values))
     d1 = pd.DataFrame({"X": df[col], "Y": df["target"]}).groupby(df[col])
-    d3 = pd.DataFrame({}, index=[])
-    d3["COUNT"] = d1.count().Y
-    pop_prop = d3["COUNT"] / len(df)
-    d3["BinMean"] = d1.sum().Y / d3.COUNT
-    d3["Mean_Sq_Diff"] = (d3.BinMean - pop_prop_1) ** 2
-    d3["Mean_Sq_DiffW"] = d3.Mean_Sq_Diff * pop_prop
-    return d3["Mean_Sq_Diff"].sum(), d3["Mean_Sq_DiffW"].sum()
-
-    print("calculate_mean_of_response_cat")
+    return calculate_mean_uw_w(d1, pop_prop_1, df)
 
 
 def read_breast_cancer_data():
@@ -146,6 +204,7 @@ def read_breast_cancer_data():
 
 
 def main(fname, r_name):
+    # Checking for input csv passed if none passed read the Breast Cancer CSV
     if fname == "":
         inp_data = read_breast_cancer_data()
     else:
@@ -154,11 +213,17 @@ def main(fname, r_name):
         except FileNotFoundError:
             inp_data = read_breast_cancer_data()
     print(inp_data.head())
+    # if No response variable passed use the Breast Cancer response variable
     if r_name == "":
         r_name = "diagnosis"
+
     print(r_name)
+
+    # Rename the response variable to target column to make it generic
     inp_data = inp_data.rename(columns={r_name: "target"})
+    # remove any Null values
     inp_data = inp_data.dropna(axis=1, how="any")
+
     y = inp_data.target.values
     X = inp_data.drop("target", axis=1)
 
@@ -167,6 +232,7 @@ def main(fname, r_name):
         os.makedirs("~/plots")
     file_path = "~/plots/"
 
+    # Output data frame
     col_names = [
         "Predictor",
         "Cat/Con",
@@ -174,14 +240,18 @@ def main(fname, r_name):
         "t-value",
         "p-value",
         "m-plot",
-        "RF-FI",
+        "RandomForestVarImp",
         "MeanSqDiff",
         "MeanSqDiffWeighted",
+        "MeanSqDiffPlots",
     ]
     output_df = pd.DataFrame(columns=col_names)
 
+    # Part 1 : Checking if Response variable is Boolean or Continuous
     res_type = Check_response_var(inp_data)
     print("Response variable is " + res_type)
+
+    # Convert Categorical to 1 and 0
     if res_type == "Boolean":
         inp_data["target"] = inp_data["target"].astype("category")
         inp_data["target"] = inp_data["target"].cat.codes
@@ -201,6 +271,7 @@ def main(fname, r_name):
     m_plot = []
     msd_uw = []
     msd_w = []
+    plot_lk = []
     for col in X.columns:
         col_name = col.replace(" ", "-").replace("/", "-")
         if is_pred_categorical(X[col]) and res_type == "Boolean":
@@ -209,7 +280,7 @@ def main(fname, r_name):
                 file_path + "cat_response_cat_predictor_heat_map_" + col_name + ".html"
             )
             generate_heatmap(inp_data, col, filename)
-            f_path.append("")
+            f_path.append("<a href=" + filename + ">" + filename + "</a>")
         elif is_pred_categorical(X[col]) and res_type != "Boolean":
             out.append("Categorical")
             filename = (
@@ -296,15 +367,19 @@ def main(fname, r_name):
             uw, w = calculate_mean_of_response(inp_data, col, pop_prop_1)
         msd_uw.append(uw)
         msd_w.append(w)
+        plot_lk.append(
+            "<a href= ~/plots/Diff_in_mean_with_response.html> Plot Link </a>"
+        )
 
     output_df["Cat/Con"] = out
     output_df["Plot_Link"] = f_path
     output_df["t-value"] = t_val
     output_df["p-value"] = p_val
     output_df["m-plot"] = m_plot
-    output_df["RF-FI"] = importance
+    output_df["RandomForestVarImp"] = importance
     output_df["MeanSqDiff"] = msd_uw
     output_df["MeanSqDiffWeighted"] = msd_w
+    output_df["MeanSqDiffPlots"] = plot_lk
 
     print(output_df)
     output_df.to_html("Assignment_4.html", render_links=True, escape=False)
