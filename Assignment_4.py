@@ -11,6 +11,7 @@ from plotly import express as px
 from plotly import figure_factory as ff
 from plotly import graph_objects as go
 from plotly.subplots import make_subplots
+from sklearn.datasets import load_boston, load_breast_cancer, load_diabetes
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.metrics import confusion_matrix
 
@@ -205,22 +206,37 @@ def read_breast_cancer_data():
 
 def main(fname, r_name):
     # Checking for input csv passed if none passed read the Breast Cancer CSV
-    if fname == "":
-        inp_data = read_breast_cancer_data()
+    if fname == "1":
+        if r_name == "1":
+            data = load_boston()
+            res_name = "Species"
+        elif r_name == "2":
+            data = load_diabetes()
+            res_name = "Outcome"
+        else:
+            data = load_breast_cancer()
+            res_name = "Outcome"
+        inp_data = pd.DataFrame(data.data, columns=data.feature_names)
+        inp_data["target"] = pd.Series(data.target)
     else:
-        try:
-            inp_data = pd.read_csv(fname)
-        except FileNotFoundError:
+        if fname == "":
             inp_data = read_breast_cancer_data()
+        else:
+            try:
+                inp_data = pd.read_csv(fname)
+            except FileNotFoundError:
+                inp_data = read_breast_cancer_data()
+
+        # if No response variable passed use the Breast Cancer response variable
+        if r_name == "":
+            r_name = "diagnosis"
+        res_name = r_name
+
+        print(r_name)
+
+        # Rename the response variable to target column to make it generic
+        inp_data = inp_data.rename(columns={r_name: "target"})
     print(inp_data.head())
-    # if No response variable passed use the Breast Cancer response variable
-    if r_name == "":
-        r_name = "diagnosis"
-
-    print(r_name)
-
-    # Rename the response variable to target column to make it generic
-    inp_data = inp_data.rename(columns={r_name: "target"})
     # remove any Null values
     inp_data = inp_data.dropna(axis=1, how="any")
 
@@ -234,6 +250,8 @@ def main(fname, r_name):
 
     # Output data frame
     col_names = [
+        "Response",
+        "Response_Type",
         "Predictor",
         "Cat/Con",
         "Plot_Link",
@@ -263,7 +281,6 @@ def main(fname, r_name):
         rf.fit(X, y)
         importance = rf.feature_importances_
     output_df["Predictor"] = X.columns
-
     out = []
     f_path = []
     p_val = []
@@ -370,7 +387,8 @@ def main(fname, r_name):
         plot_lk.append(
             "<a href= ~/plots/Diff_in_mean_with_response.html> Plot Link </a>"
         )
-
+    output_df["Response"] = res_name
+    output_df["Response_Type"] = res_type
     output_df["Cat/Con"] = out
     output_df["Plot_Link"] = f_path
     output_df["t-value"] = t_val
