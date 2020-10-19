@@ -53,20 +53,25 @@ def generate_heatmap(df, col, filename):
 
 # Generate Violin plot when Continuous Response by Categorical Predictor
 def generate_violin_plot(df, col, filename):
-    group_labels = pd.unique(df.target)
+    group_labels = pd.unique(df[col])
+    # group_labels = group_labels.astype(str)
+    # print(group_labels)
     fig_1 = go.Figure()
-    M = df[df["target"] == group_labels[0]][col]
-    B = df[df["target"] == group_labels[1]][col]
-    for curr_hist, curr_group in zip([M, B], group_labels):
+    for g in group_labels:
+        y_t = df["target"][df[col] == g]
+        x_t = df[col][df[col] == g]
+        print(x_t)
         fig_1.add_trace(
             go.Violin(
-                x=np.repeat(curr_group, len(df)),
-                y=curr_hist,
-                name=int(curr_group),
+                y=y_t,
+                x=x_t,
+                name=g.astype(str),
                 box_visible=True,
                 meanline_visible=True,
+                # points=False
             )
         )
+
     fig_1.update_layout(
         title="Continuous Response by Categorical Predictor",
         xaxis_title="Groupings",
