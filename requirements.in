@@ -8,3 +8,4 @@ mysqlclient
 sqlalchemy
 statsmodels.api
 scipy
+seaborn
