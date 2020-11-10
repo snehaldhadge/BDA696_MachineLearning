@@ -30,7 +30,7 @@ def Check_response_var(inp_df):
 # Check if Predictor is Categorical
 # Categorical have few unique values
 def is_pred_categorical(pred):
-    if pred.dtypes == "object" or pred.nunique() / pred.count() < 0.05:
+    if pred.dtypes == "object" or pred.nunique() < 5:
         return True
     else:
         return False
