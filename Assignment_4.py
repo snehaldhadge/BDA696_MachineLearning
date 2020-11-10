@@ -44,7 +44,7 @@ def generate_heatmap(df, col, filename):
         xaxis_title="Response",
         yaxis_title="Predictor",
     )
-    fig_no_relationship.show()
+    # fig_no_relationship.show()
     fig_no_relationship.write_html(
         file=filename,
         include_plotlyjs="cdn",
@@ -60,7 +60,7 @@ def generate_violin_plot(df, col, filename):
     for g in group_labels:
         y_t = df["target"][df[col] == g]
         x_t = df[col][df[col] == g]
-        print(x_t)
+
         fig_1.add_trace(
             go.Violin(
                 y=y_t,

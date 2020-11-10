@@ -6,5 +6,6 @@ pyspark
 pyspark-stubs
 mysqlclient
 sqlalchemy
-statsmodels.api
+statsmodels
 scipy
+seaborn
