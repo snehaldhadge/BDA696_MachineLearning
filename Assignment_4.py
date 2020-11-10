@@ -60,6 +60,7 @@ def generate_violin_plot(df, col, filename):
     for g in group_labels:
         y_t = df["target"][df[col] == g]
         x_t = df[col][df[col] == g]
+
         fig_1.add_trace(
             go.Violin(
                 y=y_t,
