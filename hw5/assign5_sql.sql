@@ -21,9 +21,3 @@ from allbatterdata cur JOIN allbatterdata hist on
 AND DATE_SUB(cur.l_dt,INTERVAL 1 DAY)
 GROUP BY cur.batter,cur.game_id,cur.l_dt
 ORDER BY cur.game_id;
-
-SELECT * from rolling_average
-INTO OUTFILE '/scripts/output_alldata_assign5.txt';
-
-SELECT * from rolling_average where game_id=12560
-INTO OUTFILE '/scripts/output_assign5.txt';
