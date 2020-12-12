@@ -1,0 +1,28 @@
+version: "3.1"
+services:
+  my-db:
+    image: linuxserver/mariadb:latest
+    container_name: my-db
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - MYSQL_ALLOW_EMPTY_PASSWORD="true"
+    volumes:
+      - ./dbdata:/config
+    restart: unless-stopped
+    networks:
+      my-network:
+  assign5-rollingavg:
+    container_name: assign5-rollingavg
+    depends_on:
+      - my-db
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./results:/results
+    image: assign5-rollingavg
+    networks:
+      my-network:
+networks:
+  my-network:
