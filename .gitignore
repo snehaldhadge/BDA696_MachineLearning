@@ -153,3 +153,7 @@ static
 # Project related ignores (place project related ignores below here)
 hw5/dbdata/
 hw5/results/
+Output-File_chk/
+Output-File/
+FinalProject/dbdata/
+FinalProject/Output-File/
