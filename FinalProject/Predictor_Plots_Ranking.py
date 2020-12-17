@@ -99,7 +99,7 @@ class Predictor_Plots_Ranking:
         return d2["Mean_sq_diff"].sum(), d2["Mean_sq_diffW"].sum(), filename
 
     def calculate_mean_of_response(self, col, pop_prop_1):
-        n = 4
+        n = 8
         d1 = pd.DataFrame(
             {
                 "X": self.df[col],
