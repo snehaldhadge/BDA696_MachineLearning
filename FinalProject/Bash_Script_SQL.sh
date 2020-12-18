@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sleep 15
+sleep 30
 
 if ! mysql -h my-db -u root -e 'use IPL'; then
   echo "IPL DOES NOT exists"
