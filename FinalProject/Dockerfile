@@ -16,7 +16,7 @@ RUN apt-get update \
      python3 \
      python3-pip \
      python3-dev \
-     wget \
+#     wget \
   && rm -rf /var/lib/apt/lists/*
 
 COPY ./requirements.txt .
