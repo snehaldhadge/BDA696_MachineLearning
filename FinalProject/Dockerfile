@@ -2,7 +2,7 @@ FROM ubuntu
 
 RUN mkdir /scripts
 COPY ./Bash_Script_SQL.sh /scripts/Bash_Script_SQL.sh
-COPY ./dbdata/IPL.sql /scripts/IPL.sql
+COPY ./IPL.sql /scripts/IPL.sql
 COPY ./Brute_Force_Plots.py /scripts/Brute_Force_Plots.py
 COPY ./table_gen_sql.sql /scripts/table_gen_sql.sql
 COPY ./IPL_project.py /scripts/IPL_project.py
