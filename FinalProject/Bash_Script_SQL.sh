@@ -2,7 +2,7 @@
 
 
 
-if ! mysql -h my-db -uroot -e 'use IPL'; then
+if ! mysql -h my-db -u root -e 'use IPL'; then
   echo "IPL DOES NOT exists"
     mysql -h my-db -u root -e "CREATE DATABASE IF NOT EXISTS IPL"
     mysql -h my-db -u root IPL < /scripts/IPL.sql
