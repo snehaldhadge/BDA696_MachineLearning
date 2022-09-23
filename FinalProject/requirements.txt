@@ -30,7 +30,7 @@ pandas==1.1.5             # via -r requirements.in, seaborn, statsmodels
 patsy==0.5.1              # via statsmodels
 pillow==8.0.1             # via matplotlib
 plotly==4.14.1            # via -r requirements.in
-protobuf==3.14.0          # via tensorboard, tensorflow
+protobuf==3.18.3          # via tensorboard, tensorflow
 py4j==0.10.9              # via pyspark
 pyasn1-modules==0.2.8     # via google-auth
 pyasn1==0.4.8             # via pyasn1-modules, rsa
