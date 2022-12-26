@@ -55,7 +55,7 @@ termcolor==1.1.0          # via tensorflow
 threadpoolctl==2.1.0      # via scikit-learn
 urllib3==1.26.2           # via requests
 werkzeug==1.0.1           # via tensorboard
-wheel==0.36.1             # via astunparse, tensorboard, tensorflow
+wheel==0.38.1             # via astunparse, tensorboard, tensorflow
 wrapt==1.12.1             # via tensorflow
 
 # The following packages are considered to be unsafe in a requirements file:
