@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys
+#import sys
 
 from pyspark import StorageLevel
 from pyspark.sql import SparkSession
