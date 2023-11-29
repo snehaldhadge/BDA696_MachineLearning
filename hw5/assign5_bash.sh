@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sleep 15
+sleep 20
 
 if ! mysql -h my-db -uroot -e 'use baseball'; then
   echo "Baseball DOES NOT exists"
